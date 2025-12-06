@@ -239,11 +239,13 @@ async function processMessage(bot, msg) {
                 replyText = `**${userName} сказал:**\n${transcription.text}`;
             }
 
-            // Останавливаем "печатает" (если ты уже добавил интервал из прошлого совета, 
-            // тут нужно добавить clearInterval(typingInterval), если нет — оставь как есть)
+            // Останавливаем "печатает"
             try { await bot.sendMessage(chatId, replyText, getReplyOptions(msg)); } catch(e) {}
             
-            // Подменяем текст для дальнейшей работы бота (чтобы он мог ответить на контекст)
+            // !!! ВАЖНО: Если чат в муте — на этом всё. Не отвечаем на содержимое.
+            if (storage.isTopicMuted(chatId, threadId)) return;
+
+            // Если не в муте — подменяем текст, чтобы бот мог прокомментировать
             text = transcription.text; 
             msg.text = transcription.text;
         }
@@ -318,6 +320,13 @@ async function processMessage(bot, msg) {
     return;
   }
 
+  // === СТРОГАЯ ПРОВЕРКА МУТА ===
+  // Если топик в муте, мы игнорируем ЛЮБОЙ текст (триггеры, реплаи, имя),
+  // кроме команд выше (/mute, /reset, /start).
+  if (storage.isTopicMuted(chatId, threadId)) {
+    return; // Полный игнор
+  }
+
   // [FIX] Сначала определяем, обращаются ли к нам, а потом проверяем Mute.
   const cleanText = text.toLowerCase();
 
@@ -329,16 +338,14 @@ async function processMessage(bot, msg) {
   const hasTriggerWord = config.triggerRegex.test(cleanText); 
   
   // 3. Итоговое решение: зовут ли нас?
+  // 3. Итоговое решение: зовут ли нас?
   const isDirectlyCalled = hasTriggerWord || isReplyToBot; 
 
   // !!! МОМЕНТАЛЬНАЯ РЕАКЦИЯ !!!
-  // Запускаем статус "печатает" ПЕРЕД любыми другими проверками
+  // Запускаем статус "печатает" только если мы РЕАЛЬНО собираемся отвечать или думать
   if (isDirectlyCalled) {
     startTyping(); 
   }
-
-  // Если это НЕ прямое обращение и чат в муте — игнорируем
-  if (!isDirectlyCalled && isMuted) return;
 
   addToHistory(chatId, senderName, text);
 

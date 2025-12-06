@@ -171,14 +171,22 @@ class StorageService {
 
   isTopicMuted(chatId, threadId) {
     const chat = this.getChat(chatId);
-    const tid = threadId || 'general';
-    return chat.mutedTopics.includes(tid);
+    // Исправление: проверяем именно на null/undefined, чтобы цифра 0 не превращалась в 'general'
+    let tid = (threadId === null || threadId === undefined) ? 'general' : threadId;
+    
+    // Приводим все к строке для надежного сравнения
+    tid = String(tid);
+    
+    return chat.mutedTopics.some(t => String(t) === tid);
   }
 
   toggleMute(chatId, threadId) {
     const chat = this.getChat(chatId);
-    const tid = threadId || 'general';
-    const index = chat.mutedTopics.indexOf(tid);
+    let tid = (threadId === null || threadId === undefined) ? 'general' : threadId;
+    tid = String(tid); // Сохраняем всегда как строку
+    
+    const index = chat.mutedTopics.findIndex(t => String(t) === tid);
+    
     if (index > -1) {
       chat.mutedTopics.splice(index, 1);
       this.save();
@@ -189,6 +197,7 @@ class StorageService {
       return true; // Muted
     }
   }
+
 
   // === ИНСТРУКЦИИ (Только чтение) ===
   getUserInstruction(username) {
