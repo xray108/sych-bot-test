@@ -20,8 +20,24 @@ console.log = (...args) => originalLog(getTimestamp(), ...args);
 console.error = (...args) => originalError(getTimestamp(), ...args);
 
 
-// Создаем бота
-const bot = new TelegramBot(config.telegramToken, { polling: true });
+// Создаем бота c вебхуками
+const bot = new TelegramBot(config.telegramToken, {
+  webHook: {
+    port: config.port,
+    host: '0.0.0.0',
+  },
+});
+
+bot
+  .setWebHook(`${config.webhookBaseUrl}${config.webhookPath}`)
+  .then(() => {
+    const maskedPath = `${config.webhookBaseUrl}${config.webhookPath.replace(config.telegramToken, '***')}`;
+    console.log(`[WEBHOOK] Зарегистрирован: ${maskedPath}`);
+  })
+  .catch((err) => {
+    console.error(`[WEBHOOK ERROR] Не удалось зарегистрировать вебхук: ${err.message}`);
+    process.exit(1);
+  });
 
 // Передаем бота в AI-сервис для уведомлений
 const ai = require('./services/ai');
@@ -59,10 +75,9 @@ setInterval(() => {
   }
 }, 60 * 1000); // 60000 мс = 1 минута
 
-// Обработка ошибок поллинга
-bot.on('polling_error', (error) => {
-    console.error(`[POLLING ERROR] ${error.code}: ${error.message}`);
-    // Если ошибка "Conflict: terminated by other getUpdates", значит запущен второй экземпляр
+// Обработка ошибок вебхука
+bot.on('webhook_error', (error) => {
+    console.error(`[WEBHOOK ERROR] ${error.code || 'UNKNOWN'}: ${error.message}`);
   });
 
 // Единый вход для всех сообщений
