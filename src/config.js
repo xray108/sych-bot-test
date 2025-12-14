@@ -18,7 +18,6 @@ function collectGeminiKeys() {
   const primaryKey = process.env.GOOGLE_GEMINI_API_KEY;
   if (primaryKey) keys.push(primaryKey);
 
-  // Ищем ключи с суффиксами _2, _3 и т.д.
   let i = 2;
   while (process.env[`GOOGLE_GEMINI_API_KEY_${i}`]) {
     keys.push(process.env[`GOOGLE_GEMINI_API_KEY_${i}`]);
@@ -33,12 +32,13 @@ console.log(`[CONFIG] Загружено ключей Gemini: ${geminiKeys.lengt
 
 const telegramToken = requireEnv('TELEGRAM_BOT_TOKEN', 'формат 0000000:abc');
 const adminIdRaw = requireEnv('ADMIN_USER_ID', 'цифровой ID администратора');
+
 const webhookBaseUrl = requireEnv('WEBHOOK_BASE_URL', 'публичный https URL без слеша в конце');
-const port = parseInt(process.env.PORT || '3000', 10);
+const port = Number.parseInt(process.env.PORT || '3000', 10);
 const webhookPath = `/bot${telegramToken}`;
 
-const botId = parseInt(telegramToken.split(':')[0], 10);
-const adminId = parseInt(adminIdRaw, 10);
+const botId = Number.parseInt(telegramToken.split(':')[0], 10);
+const adminId = Number.parseInt(adminIdRaw, 10);
 
 if (Number.isNaN(botId)) {
   throw new Error('[CONFIG] Не удалось извлечь botId из TELEGRAM_BOT_TOKEN');
@@ -57,6 +57,7 @@ module.exports = {
   version: packageInfo.version,
   botId,
   adminId,
+
   webhookBaseUrl,
   webhookPath,
   port,
@@ -69,5 +70,3 @@ module.exports = {
   contextSize: 30,
   triggerRegex: /(?<![а-яёa-z])(сыч|sych)(?![а-яёa-z])/i,
 };
-
-
