@@ -53,6 +53,12 @@ TELEGRAM_BOT_TOKEN=123456:ABC-DEF1234ghIkl-zyx57W2v1u123ew11
 # Ваш ID (чтобы бот слал вам логи и ошибки в личку)
 ADMIN_USER_ID=123456789
 
+# Публичный HTTPS-домен, доступный для Telegram (без слеша в конце)
+WEBHOOK_BASE_URL=https://your-domain.example
+
+# Порт локального HTTP-сервера для приёма вебхуков
+PORT=3000
+
 # Ключи Google Gemini (получить в Google AI Studio)
 # Можно указать один, а можно хоть десять для ротации
 GOOGLE_GEMINI_API_KEY=AIzaSyD...
@@ -60,11 +66,13 @@ GOOGLE_GEMINI_API_KEY_2=AIzaSyD...
 GOOGLE_GEMINI_API_KEY_3=AIzaSyD...
 ```
 
+> Бот работает через вебхуки. Убедитесь, что `WEBHOOK_BASE_URL` указывает на публичный HTTPS-домен, до которого Telegram может достучаться.
+
 ### 3. Запуск
 
 **Локально (для тестов):**
 ```bash
-node index.js
+npm start
 ```
 
 **На сервере (Production):**
